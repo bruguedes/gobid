@@ -6,7 +6,9 @@ import (
 
 	"github.com/bruguedes/gobid/internal/store/pgstore"
 	"github.com/bruguedes/gobid/internal/usecase/user"
+	"github.com/bruguedes/gobid/internal/validator"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -51,4 +53,25 @@ func (us *UserService) CreateUser(ctx context.Context, data user.CreateUserReque
 
 	}
 	return newUser.ID, nil
+}
+
+func (us *UserService) AuthenticateUser(ctx context.Context, data user.LoginUserRequest) (uuid.UUID, error) {
+	user, err := us.queries.GetUserByEmail(ctx, data.Email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.UUID{}, validator.ErrInvalidCredentials
+		}
+		return uuid.UUID{}, err
+	}
+
+	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(data.Password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return uuid.UUID{}, validator.ErrInvalidCredentials
+		}
+		return uuid.UUID{}, err
+	}
+
+	return user.ID, nil
+
 }
