@@ -149,3 +149,97 @@ sqlc generate -f ./internal/store/pgstore/sqlc.yml
 ---
 
 Com esse guia, você cobre não só o passo a passo da implementação, mas também pontos de segurança, manutenção e boas práticas para um sistema de autenticação robusto em Go usando SCS!
+
+=========================================================
+
+Configurando Gorilla CSRF
+Para adicionar proteção CSRF, você pode usar a biblioteca `gorilla/csrf`. Instale-a com:
+`go get github.com/gorilla/csrf`
+
+
+# Guia de Estudo: CSRF Token e Proteção de APIs
+
+## O que é CSRF?
+
+CSRF (Cross-Site Request Forgery) é um ataque onde um site malicioso faz requisições em nome do usuário autenticado em outro site, explorando o fato de que cookies de sessão são enviados automaticamente pelo navegador.
+
+### Exemplo de Ataque
+
+- Usuário loga em `api.golbid.com` e recebe um cookie de sessão.
+- Ao acessar um site malicioso, esse site tenta fazer uma requisição (ex: deletar usuário) para `api.golbid.com`.
+- O navegador envia automaticamente o cookie de sessão, mesmo que a requisição venha de outro site.
+- Se a API não tiver proteção, a ação é executada como se fosse o próprio usuário.
+
+## Como o CSRF Token resolve o problema?
+
+- O CSRF Token é um valor secreto, gerado pelo servidor e enviado ao cliente.
+- O token **não** é enviado automaticamente pelo navegador, diferente do cookie.
+- Para modificar dados (POST, PUT, PATCH, DELETE), a API exige que o token seja enviado no header da requisição.
+- Um site malicioso não consegue acessar o token, pois ele não está disponível fora do domínio da aplicação.
+
+## Fluxo de Autenticação Seguro
+
+1. **Obter o CSRF Token:**
+   O cliente faz um GET para `/api/v1/csrf-token`.
+   O servidor retorna o token no header ou body e um cookie de controle.
+
+2. **Login:**
+   O cliente faz POST para `/api/v1/users/login` enviando:
+   - Usuário e senha no body.
+   - CSRF Token no header (`X-CSRF-Token`).
+   - Cookie de controle (enviado automaticamente).
+
+3. **Validação:**
+   O middleware do servidor valida se o token do header bate com o cookie.
+   - Se não existir ou não bater, a requisição é rejeitada.
+   - Se bater, a requisição segue normalmente.
+
+## Implementação no Go (Gorilla CSRF)
+
+- Uso do middleware `csrf.Protect`:
+  - Recebe uma chave secreta (32 bytes) do `.env`.
+  - Opção `csrf.Secure(false)` para desenvolvimento (usar `true` em produção).
+- O middleware só exige o token em métodos que modificam dados (POST, PUT, PATCH, DELETE).
+- O token é enviado ao cliente por um handler específico (`HandleGetCSRFToken`).
+
+### Exemplo de Rota
+
+```go
+r.Get("/csrf-token", api.HandleGetCSRFToken)
+
+Exemplo de Handler
+func (api *API) HandleGetCSRFToken(w http.ResponseWriter, r *http.Request) {
+    token := csrf.Token(r)
+    json.NewEncoder(w).Encode(map[string]string{"csrf_token": token})
+}
+
+## Pontos de Atenção
+
+- **Desenvolvimento:**
+  Pode ser incômodo, pois o token é gerado em memória e muda a cada restart da aplicação.
+
+- **Produção:**
+  Sempre use `csrf.Secure(true)` e uma chave secreta forte.
+
+- **Envio do Token:**
+  Sempre envie o token em requisições que alteram dados.
+
+- **CORS:**
+  O token só é acessível por páginas do mesmo domínio.
+
+---
+
+## Resumo
+
+- CSRF Token é essencial para proteger APIs autenticadas por cookie.
+- O token impede que sites externos realizem ações em nome do usuário.
+- O middleware do Gorilla CSRF facilita a implementação dessa proteção em Go.
+
+---
+
+### Guia rápido para lembrar
+
+1. Sempre gere e envie o CSRF Token para o cliente.
+2. Exija o token em requisições de alteração de dados.
+3. Use `csrf.Secure(true)` em produção.
+4. Nunca confie apenas em cookies para autenticação de APIs.
