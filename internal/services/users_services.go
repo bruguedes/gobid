@@ -8,7 +8,7 @@ import (
 	"github.com/bruguedes/gobid/internal/usecase/user"
 	"github.com/bruguedes/gobid/internal/validator"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"

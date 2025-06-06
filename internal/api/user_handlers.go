@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/bruguedes/gobid/internal/jsonutils"
@@ -41,7 +40,6 @@ func (api *API) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Referer recebido:", r.Header.Get("Referer"))
 
 	data, problems, err := jsonutils.DecodeValidJson[user.LoginUserRequest](r)
 
@@ -59,6 +57,8 @@ func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jsonutils.EncodeJSON(w, r, http.StatusUnprocessableEntity, err.Error())
+
+		return
 
 	}
 
