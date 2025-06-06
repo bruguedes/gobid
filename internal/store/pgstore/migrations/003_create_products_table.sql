@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS products (
     seller_id UUID NOT NULL REFERENCES users(id),
     product_name TEXT NOT NULL,
     description TEXT NOT NULL,
-    base_price FLOAT NOT NULL CHECK (price > 0),
+    price FLOAT NOT NULL CHECK (price > 0),
     auction_and TIMESTAMPTZ NOT NULL,
     is_sold BOOLEAN NOT NULL DEFAULT FALSE,
 
