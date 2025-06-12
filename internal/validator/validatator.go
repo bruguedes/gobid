@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -47,4 +48,14 @@ func MinChar(value string, min int) bool {
 
 func ValidateEmail(value string, rx *regexp.Regexp) bool {
 	return rx.MatchString(value)
+}
+func Price(value float64) bool {
+	return value > 0
+}
+
+func AuctionEnd(value time.Time) bool {
+	minAuctionDuration := 2 * time.Hour
+
+	return time.Until(value) > minAuctionDuration
+
 }
