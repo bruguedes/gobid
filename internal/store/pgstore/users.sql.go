@@ -7,9 +7,9 @@ package pgstore
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -26,11 +26,11 @@ type CreateUserParams struct {
 }
 
 type CreateUserRow struct {
-	ID        uuid.UUID          `json:"id"`
-	UserName  string             `json:"user_name"`
-	Email     string             `json:"email"`
-	Bio       string             `json:"bio"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	UserName  string    `json:"user_name"`
+	Email     string    `json:"email"`
+	Bio       string    `json:"bio"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
