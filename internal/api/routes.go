@@ -16,16 +16,28 @@ func (api *API) BindRoutes() {
 	// )
 	// api.Router.Use(csrfMiddleware)
 
+	// Todo: Implementar rota para listar produtos
+	// Todo: Implementar rota para listar usuários
+	// Todo: inplementar rota para buscar usuário/produtos por ID
+
 	api.Router.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			// r.Get("/csrf-token", api.HandleGetCSRFToken)
 			r.Route("/users", func(r chi.Router) {
 				r.Post("/signup", api.HandleSignUp)
 				r.Post("/login", api.HandleLogin)
-				r.With(api.AuthMiddleware).Post("/logout", api.HandleLogout)
+
+				r.Group(func(r chi.Router) {
+					r.Use(api.AuthMiddleware)
+					r.Post("/logout", api.HandleLogout)
+				})
 			})
 			r.Route("/products", func(r chi.Router) {
-				r.Post("/", api.HandlerCreateProduct)
+				r.Group(func(r chi.Router) {
+					// Todas a rotas deste grupo requerem autenticação
+					r.Use(api.AuthMiddleware)
+					r.Post("/", api.HandlerCreateProduct)
+					r.Get("/ws/subscribe/{product_id}", api.HandleSubscribeToAuction)
 			})
 		})
 	})

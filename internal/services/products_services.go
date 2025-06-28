@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bruguedes/gobid/internal/store/pgstore"
 	"github.com/bruguedes/gobid/internal/usecase/product"
+	"github.com/bruguedes/gobid/internal/validator"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,4 +38,16 @@ func (ps *ProductService) CreateProduct(ctx context.Context, data product.Create
 		return uuid.UUID{}, err
 	}
 	return newProductID, nil
+}
+
+func (ps *ProductService) GetProductByID(ctx context.Context, productID uuid.UUID) (pgstore.Product, error) {
+	product, err := ps.queries.GetProductByID(ctx, productID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return pgstore.Product{}, validator.ErrProductNotFound
+		}
+		return pgstore.Product{}, err
+
+	}
+	return product, nil
 }
