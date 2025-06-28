@@ -39,3 +39,26 @@ Pronto! Agora você pode focar no desenvolvimento sem precisar reiniciar manualm
 ```bash
 sqlc generate -f ./internal/store/pgstore/sqlc.yml
 ```
+
+
+
+Aulas: bidsService
+```bash
+Dentro da pasta migrations, crie um arquivo de migração com o comando:
+tern new create_bids_table
+```
+Rodar a migração:
+```bash
+tern up
+```
+criar arquivo bids.sqlc.yml dentro da pasta internal/store/pgstore/queries com o seguinte conteúdo, e escrever as queries necessárias.
+
+
+rodar o sqlc generate, para gerar o código Go a partir das queries SQL:
+
+```bash
+sqlc generate -f ./internal/store/pgstore/sqlc.yml
+
+Esse comando irá ler o arquivo sqlc.yml e gerar o código Go correspondente às queries definidas, facilitando a interação com o banco de dados PostgreSQL de forma tipada e segura.
+O arquivo gerado esta localizado em internal/store/pgstore/queries/bids.sql.go
+```
